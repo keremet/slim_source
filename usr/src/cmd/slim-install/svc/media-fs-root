@@ -259,26 +259,10 @@ elif [ $LIVECD = 1 ]; then
 	# else
 	#     Ask user to configure Keyboard Layout and Desktop Language
 	#
-	if [ "$livessh" = "enable" ]; then
-		/usr/sbin/set_lang default
-		/usr/bin/kbd -s US-English
+	/usr/bin/kbd -s US-English
+	/usr/sbin/set_lng
+	if [ "$livessh" = "enable" ]; then		
 		/usr/sbin/svcadm enable network/ssh
-	else
-		#
-		# Ask user to configure Keyboard Layout
-		#
-		if [ "x$assistive_tech" != "x" ] ; then
-			printf "\\a"
-		fi
-		/usr/bin/kbd -s </dev/console >/dev/console 2>&1
-
-		#
-		# Ask user to configure Language
-		#
-		if [ "x$assistive_tech" != "x" ] ; then
-			printf "\\a"
-		fi
-		/usr/sbin/set_lang </dev/console >/dev/console 2>&1
 	fi
 
 	# /usr/bin/setup.sh
@@ -299,8 +283,8 @@ elif [ $LIVECD = 1 ]; then
 elif [ $TEXTINSTALL = 1 ]
 then
 	# Get keyboard layout from user.
-	/usr/bin/kbd -s </dev/console >/dev/console 2>&1
-	/usr/sbin/set_lang </dev/console >/dev/console 2>&1
+	/usr/bin/kbd -s US-English
+	/usr/sbin/set_lng
 fi
 
 exit $SMF_EXIT_OK
