@@ -2499,6 +2499,7 @@ class ICT(object):
                             fp_tmp.write(l)
                     if login:
                         fp_tmp.write(login + ' ALL=(ALL) ALL\n')
+                        fp_tmp.write(login + ' ALL=(ALL)NOPASSWD:/usr/sbin/poweroff,/usr/sbin/reboot\n')
     
                 os.remove(self.sudoers)
                 shutil.move(temp_file, self.sudoers)
