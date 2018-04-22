@@ -272,9 +272,9 @@ def do_ti(install_profile, swap_dump):
 
         # The installation size we provide already included the required
         # swap size
-        (swap_type, swap_size, dump_type, dump_size) = \
-            swap_dump.calc_swap_dump_size(ti_utils.get_minimum_size(swap_dump),
-                                          inst_device_size, swap_included=True)
+#        (swap_type, swap_size, dump_type, dump_size) = \
+#            swap_dump.calc_swap_dump_size(ti_utils.get_minimum_size(swap_dump),
+#                                          inst_device_size, swap_included=True)
         for disk in install_profile.disks:
             tgt_disk = disk.to_tgt()
             tgt.create_disk_target(tgt_disk, False)
@@ -287,20 +287,20 @@ def do_ti(install_profile, swap_dump):
         logging.debug("Completed create_root_pool")
         INSTALL_STATUS.update(InstallStatus.TI, 40, mesg)
 
-        create_swap = False
-        if (swap_type == ti_utils.SwapDump.ZVOL):
-            create_swap = True
+#        create_swap = False
+#        if (swap_type == ti_utils.SwapDump.ZVOL):
+#            create_swap = True
 
-        create_dump = False
-        if (dump_type == ti_utils.SwapDump.ZVOL):
-            create_dump = True
+#        create_dump = False
+#        if (dump_type == ti_utils.SwapDump.ZVOL):
+#            create_dump = True
 
-        logging.debug("Create swap %s Swap size: %s", create_swap, swap_size)
-        logging.debug("Create dump %s Dump size: %s", create_dump, dump_size)
+#        logging.debug("Create swap %s Swap size: %s", create_swap, swap_size)
+#        logging.debug("Create dump %s Dump size: %s", create_dump, dump_size)
 
-        tgt.create_zfs_volume(rootpool_name, create_swap, swap_size,
-                              create_dump, dump_size)
-        logging.debug("Completed create swap and dump")
+#        tgt.create_zfs_volume(rootpool_name, create_swap, swap_size,
+#                              create_dump, dump_size)
+#        logging.debug("Completed create swap and dump")
         INSTALL_STATUS.update(InstallStatus.TI, 70, mesg)
 
         zfs_datasets = ()
@@ -479,9 +479,9 @@ def do_ti_install(install_profile, screen, update_status_func, quit_event,
     ti_utils.save_timezone_in_init(INSTALLED_ROOT_DIR, timezone)
 
     # If swap was created, add appropriate entry to <target>/etc/vfstab
-    swap_device = swap_dump.get_swap_device(rootpool_name) 
-    logging.debug("Swap device: %s", swap_device)
-    ti_utils.setup_etc_vfstab_for_swap(swap_device, INSTALLED_ROOT_DIR)
+#    swap_device = swap_dump.get_swap_device(rootpool_name) 
+#    logging.debug("Swap device: %s", swap_device)
+#    ti_utils.setup_etc_vfstab_for_swap(swap_device, INSTALLED_ROOT_DIR)
 
     try:
         run_ICTs(install_profile, hostname, ict_mesg,
