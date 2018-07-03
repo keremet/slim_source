@@ -456,7 +456,6 @@ class ICT(object):
 
         self.kbd_device = '/dev/kbd'
         self.kbd_layout_file = '/usr/share/lib/keytables/type_6/kbd_layouts'
-        self.keyboard_layout = ''
 
         # determine whether we are installing to an iSCSI boot target
         self.iscsi_boot_install = False
@@ -932,68 +931,14 @@ class ICT(object):
         _dbg_msg('bootpath property removed from ' + self.bootenvrc)
         return 0
 
-    def get_keyboard_layout(self):
-        '''Get keyboard layout using ioctl KIOCLAYOUT on /dev/kbd
-        return 0 for success, otherwise error code
-        '''
-        #ioctl codes taken from /usr/include/sys/kbio.h
-        kioc = ord('k') << 8
-        kioclayout = kioc | 20
-        _dbg_msg("Opening keyboard device: " + self.kbd_device)
-        try:
-            kbd = open(self.kbd_device, "r+")
-        except StandardError:
-            prerror('Failure to open keyboard device ' + self.kbd_device)
-            prerror('Failure. Returning: ICT_OPEN_KEYBOARD_DEVICE_FAILED')
-            return ICT_OPEN_KEYBOARD_DEVICE_FAILED
-        if kbd == None:
-            prerror('Failure to open keyboard device ' + self.kbd_device)
-            prerror('Failure. Returning: ICT_OPEN_KEYBOARD_DEVICE_FAILED')
-            return ICT_OPEN_KEYBOARD_DEVICE_FAILED
-
-        k = array.array('i', [0])
-        
-        try:
-            status = fcntl.ioctl(kbd, kioclayout, k, 1)
-        except IOError as err:
-            status = err.errno
-            if status == errno.EINVAL:
-                kbd.close()
-                info_msg("Failed to read keyboard device ioctl; Ignoring")
-                return 0
-        except StandardError:
-            status = 1
-        
-        if status != 0:
-            kbd.close()
-            prerror('fcntl ioctl KIOCLAYOUT_FAILED: status=' + str(status))
-            prerror('Failure. Returning: ICT_KIOCLAYOUT_FAILED')
-            return ICT_KIOCLAYOUT_FAILED
-        kbd_layout = k.tolist()[0]
-        kbd.close()
-
-        self.keyboard_layout = self._get_kbd_layout_name(kbd_layout)
-
-        return 0
-
     def generate_sc_profile(self):
         ''' ICT - Assemble System Configuration (SC) profile
 
-        Configured parameters:
-          * keyboard layout - profile will configure keymap/layout SMF property
-            of svc:/system/keymap:default SMF service.
-          * enabled display manager - either lightdm or gdm (if lightdm doesn't exist)
-        
-        Following approach is taken:
-         * Take template profile
-         * Set value of keymap/layout SMF property to desired value (it is
-           configured as 'US-English' in template
          * Store SMF profile into profile directory
            (/etc/svc/profile/)
 
         return 0 for success, ICT_GENERATE_SC_PROFILE_FAILED in case of failure
         '''
-        display_manager='gdm'
 
         _register_task(inspect.currentframe())
 
@@ -1001,37 +946,7 @@ class ICT(object):
         sc_profile_dst = self.basedir + '/etc/svc/profile/' + \
                          self.sc_profile
 
-        # Obtain desired keyboard layout.
-        if self.get_keyboard_layout() != 0:
-            prerror('get_keyboard_layout() failed, Returning: '
-                    'ICT_GENERATE_SC_PROFILE_FAILED')
-            return ICT_GENERATE_SC_PROFILE_FAILED
-
-        #
-        # If keyboard layout has not been identified,
-        # go with default setting (US-English)
-        #
-        if self.keyboard_layout == '':
-            info_msg('Keyboard layout has not been identified')
-            info_msg('It will be configured to US-English.')
-            self.keyboard_layout = 'US-English'
-
-        info_msg('Detected ' + self.keyboard_layout + ' keyboard layout')
-
-        if os.path.isfile(self.basedir + '/usr/sbin/lightdm'):
-            display_manager='lightdm' 
-            
-        status = _cmd_status('/usr/bin/sed -e s/US-English/' + \
-                             self.keyboard_layout + '/ ' + \
-	                     ' -e s/gdm/' + display_manager + '/ ' + \
-                             sc_profile_src + ' > ' + sc_profile_dst)
-        if status != 0:
-            try:
-                os.unlink(sc_profile_dst)
-            except OSError:
-                pass
-            prerror('Failure. Returning: ICT_GENERATE_SC_PROFILE_FAILED')
-            return ICT_GENERATE_SC_PROFILE_FAILED
+	shutil.copyfile(sc_profile_src, sc_profile_dst)
 
         info_msg('Created System Configuration profile ' + sc_profile_dst)
 
